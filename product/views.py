@@ -1,13 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from .filters import ProductsFilter
-
-from .serializers import ProductSerializer
-
 from .models import Product
+from .serializers import ProductSerializer
 
 # Create your views here.
 

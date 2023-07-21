@@ -1,6 +1,9 @@
 from ast import keyword
+
 from django_filters import rest_framework as filters
+
 from .models import Product
+
 
 class ProductsFilter(filters.FilterSet):
 
