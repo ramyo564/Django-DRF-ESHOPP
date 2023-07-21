@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from .filters import ProductsFilter
 from .models import Product, ProductImages
 from .serializers import ProductSerializer, ProductImagesSerializer
+from rest_framework import status
 
-# Create your views here.
 
 @api_view(['GET'])
 def get_products(request):
@@ -77,3 +77,40 @@ def upload_product_images(request):
     serializer = ProductImagesSerializer(images, many=True)
 
     return Response(serializer.data)
+
+
+@api_view(['PUT'])
+def update_product(request, pk):
+    product = get_object_or_404(Product, id=pk)
+
+    # Check if the user is same - todo
+
+    product.name = request.data['name']
+    product.description = request.data['description']
+    product.price = request.data['price']
+    product.category = request.data['category']
+    product.brand = request.data['brand']
+    product.ratings = request.data['ratings']
+    product.stock = request.data['stock']
+
+    product.save()
+
+    serializer = ProductSerializer(product, many=False)
+
+    return Response({ "product": serializer.data })
+
+
+@api_view(['DELETE'])
+def delete_product(request, pk):
+    product = get_object_or_404(Product, id=pk)
+
+    # Check if the user is same - todo
+
+    args = { "product": pk }
+    images = ProductImages.objects.filter(**args)
+    for i in images:
+        i.delete()
+
+    product.delete()
+
+    return Response({ 'details': 'Product is deleted' }, status=status.HTTP_200_OK)
