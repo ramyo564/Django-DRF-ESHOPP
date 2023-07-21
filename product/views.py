@@ -45,6 +45,25 @@ def get_product(request, pk):
 
 
 @api_view(['POST'])
+def new_product(request):
+
+    data= request.data
+
+    serializer = ProductSerializer(data=data)
+
+    if serializer.is_valid():
+
+        product = Product.objects.create(**data)
+
+        res = ProductSerializer(product, many=False)
+
+        return Response({ "product": res.data })
+
+    else:
+        return Response(serializer.errors)
+
+
+@api_view(['POST'])
 def upload_product_images(request):
 
     data=request.data
