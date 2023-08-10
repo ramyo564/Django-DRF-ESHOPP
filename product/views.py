@@ -1,12 +1,13 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import status
 
 from .filters import ProductsFilter
 from .models import Product, ProductImages
 from .serializers import ProductSerializer, ProductImagesSerializer
-from rest_framework import status
 
 
 @api_view(['GET'])
@@ -23,7 +24,6 @@ def get_products(request):
     paginator.page_size = resPerPage
 
     queryset = paginator.paginate_queryset(filterset.qs, request)
-
 
     serializer = ProductSerializer(queryset, many=True)
 
@@ -47,7 +47,7 @@ def get_product(request, pk):
 @api_view(['POST'])
 def new_product(request):
 
-    data= request.data
+    data = request.data
 
     serializer = ProductSerializer(data=data)
 
@@ -57,7 +57,7 @@ def new_product(request):
 
         res = ProductSerializer(product, many=False)
 
-        return Response({ "product": res.data })
+        return Response({"product": res.data})
 
     else:
         return Response(serializer.errors)
@@ -66,10 +66,10 @@ def new_product(request):
 @api_view(['POST'])
 def upload_product_images(request):
 
-    data=request.data
+    data = request.data
     files = request.FILES.getlist('images')
 
-    images= []
+    images = []
     for f in files:
         image = ProductImages.objects.create(product=Product(data['product']), image=f)
         images.append(image)
@@ -97,20 +97,23 @@ def update_product(request, pk):
 
     serializer = ProductSerializer(product, many=False)
 
-    return Response({ "product": serializer.data })
+    return Response({"product": serializer.data})
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_product(request, pk):
     product = get_object_or_404(Product, id=pk)
 
-    # Check if the user is same - todo
+    if product.user != request.user:
+        return Response({'error': 'You cannot delete this product'},
+                        status=status.HTTP_403_FORBIDDEN)
 
-    args = { "product": pk }
+    args = {"product": pk}
     images = ProductImages.objects.filter(**args)
     for i in images:
         i.delete()
 
     product.delete()
 
-    return Response({ 'details': 'Product is deleted' }, status=status.HTTP_200_OK)
+    return Response({'details': 'Product is deleted'}, status=status.HTTP_200_OK)
