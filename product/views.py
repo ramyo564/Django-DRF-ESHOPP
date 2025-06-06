@@ -14,7 +14,7 @@ from .serializers import ProductSerializer, ProductImagesSerializer
 def get_products(request):
 
     filterset = ProductsFilter(request.GET, queryset=Product.objects.all().order_by('id'))
-
+    filterset.qs
     count = filterset.qs.count()
 
     # Pagination
